@@ -1,0 +1,58 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HealthGuard AI | Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #0984e3; --accent: #00cec9; --bg: #f4f7f6; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; }
+        nav { background: white; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-weight: 600; color: var(--primary); font-size: 1.3rem; text-decoration: none; }
+        .nav-links a { text-decoration: none; color: #2d3436; margin-left: 20px; font-weight: 500; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        .container { display: flex; justify-content: center; align-items: center; height: 85vh; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 380px; border-top: 6px solid var(--primary); }
+        .input-group { margin-bottom: 20px; text-align: left; position: relative; }
+        label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: #636e72; }
+        input { width: 100%; padding: 12px 12px 12px 40px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; }
+        .input-group i { position: absolute; left: 15px; top: 35px; color: var(--primary); }
+        button { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(9,132,227,0.3); }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo"><i class="fas fa-heartbeat"></i> HealthGuard AI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/about">Technology</a>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <h2 style="margin-bottom:10px">Patient Vitals</h2>
+            <p style="font-size:0.8rem; color:#666; margin-bottom:25px">Fill in the data for AI analysis.</p>
+            <form action="/predict" method="POST">
+                <div class="input-group">
+                    <label>Age</label>
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="number" name="age" placeholder="Age" required>
+                </div>
+                <div class="input-group">
+                    <label>Glucose Level</label>
+                    <i class="fas fa-tint"></i>
+                    <input type="number" name="glucose" placeholder="mg/dL" required>
+                </div>
+                <div class="input-group">
+                    <label>Blood Pressure</label>
+                    <i class="fas fa-heart"></i>
+                    <input type="number" name="blood_pressure" placeholder="mmHg" required>
+                </div>
+                <button type="submit">Analyze & Predict</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
