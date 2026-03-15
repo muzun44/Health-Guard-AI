@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+ from flask import Flask, render_template, request, redirect, url_for, session
 import pickle
 import numpy as np
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = 'health_guard_secure_key'
+app.secret_key = 'health_guard_ultra_secret'
 
 # تحميل الموديل
 try:
@@ -12,16 +12,18 @@ try:
 except:
     model = None
 
-# وظيفة للتعامل مع قاعدة البيانات
-def get_db_connection():
-    conn = sqlite3.connect('users_data.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-# إنشاء جدول المستخدمين إذا لم يكن موجوداً
+# إنشاء قاعدة البيانات تلقائياً
 def init_db():
-    conn = get_db_connection()
-    conn.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)')
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
     conn.close()
 
 init_db()
@@ -35,59 +37,63 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        user = request.form['username']
+        pwd = request.form['password']
         try:
-            conn = get_db_connection()
-            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+            conn = sqlite3.connect('users.db')
+            cur = conn.cursor()
+            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, pwd))
             conn.commit()
             conn.close()
             return redirect(url_for('login'))
         except:
-            return "اسم المستخدم موجود مسبقاً، اختر اسماً آخر."
+            return "اسم المستخدم موجود مسبقاً، حاول باسم آخر."
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
+        user = request.form['username']
+        pwd = request.form['password']
+        conn = sqlite3.connect('users.db')
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (user, pwd))
+        found_user = cur.fetchone()
         conn.close()
-        if user:
-            session['username'] = username
+        if found_user:
+            session['username'] = user
             return redirect(url_for('home'))
         else:
-            error = 'بيانات الدخول خاطئة'
+            error = 'بيانات الدخول غير صحيحة'
     return render_template('login.html', error=error)
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'username' not in session: return redirect(url_for('login'))
+    if 'username' not in session:
+        return redirect(url_for('login'))
     try:
         age = float(request.form.get('age'))
         glucose = float(request.form.get('glucose'))
         systolic = float(request.form.get('systolic'))
         diastolic = float(request.form.get('diastolic'))
         bp_avg = (systolic + diastolic) / 2
-        
         features = np.array([[age, glucose, bp_avg]])
         prediction = model.predict(features)
         
-        res = "إيجابي" if prediction[0] == 1 else "سلبي"
-        adv = "نصيحة: قلل السكريات وراجع الطبيب." if prediction[0] == 1 else "نصيحة: حالتك ممتازة، استمر."
-        st = "danger" if prediction[0] == 1 else "success"
-        
+        if prediction[0] == 1:
+            res, adv, st = "إيجابي", "نصيحة: قلل السكريات وراجع الطبيب.", "danger"
+        else:
+            res, adv, st = "سلبي", "نصيحة: حالتك ممتازة، استمر في نمط حياتك الصحي.", "success"
+            
         return render_template('result.html', result=res, advice=adv, status=st)
     except:
-        return "خطأ في البيانات"
+        return "خطأ في إدخال البيانات"
 
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
-if __name__ == '__main__':
+if name == '__main__':
     app.run(debug=True)
