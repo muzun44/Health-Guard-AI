@@ -2,31 +2,34 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import pickle
 import numpy as np
 import sqlite3
-import re # لمكتبة التحقق من شروط كلمة المرور
+import re
+import os
 
 app = Flask(__name__)
-app.secret_key = 'health_guard_pro_key_2026'
+app.secret_key = os.urandom(24) # مفتاح أمان متغير
 
-# تحميل الموديل
-try:
-    model = pickle.load(open('medical_model.pkl', 'rb'))
-except:
-    model = None
+# تحميل الموديل بذكاء لتجنب الانهيار
+model = None
+if os.path.exists('medical_model.pkl'):
+    try:
+        with open('medical_model.pkl', 'rb') as f:
+            model = pickle.load(f)
+    except Exception as e:
+        print(f"Error loading model: {e}")
 
-DB_NAME = 'health_system_v3.db'
+DB_NAME = 'health_database_v4.db'
 
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
 
 init_db()
 
@@ -39,50 +42,46 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        user = request.form.get('username').strip()
-        pwd = request.form.get('password').strip()
+        user = request.form.get('username', '').strip()
+        pwd = request.form.get('password', '').strip()
         
-        # تطبيق شروط الدكتور (Security Validation)
+        # شروط الدكتور
         if len(pwd) < 8:
-            return "خطأ: كلمة المرور يجب أن تكون 8 خانات على الأقل."
+            return "خطأ: كلمة المرور قصيرة جداً (أقل من 8)."
         if not re.search(r"\d", pwd):
-            return "خطأ: يجب أن تحتوي كلمة المرور على رقم واحد على الأقل."
+            return "خطأ: يجب وجود رقم واحد على الأقل."
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>+-]", pwd):
-            return "خطأ: يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل (@#$)."
+            return "خطأ: يجب وجود رمز خاص واحد على الأقل."
             
         try:
-            conn = sqlite3.connect(DB_NAME)
-            cur = conn.cursor()
-            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, pwd))
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(DB_NAME) as conn:
+                cur = conn.cursor()
+                cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, pwd))
+                conn.commit()
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
-            return "هذا الاسم مسجل مسبقاً، حاول باسم آخر."
+            return "هذا الاسم موجود، اختر اسماً آخر."
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        user = request.form.get('username').strip()
-        pwd = request.form.get('password').strip()
-        conn = sqlite3.connect(DB_NAME)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (user, pwd))
-        found_user = cur.fetchone()
-        conn.close()
-        if found_user:
-            session['username'] = user
-            return redirect(url_for('home'))
-        else:
-            error = 'بيانات الدخول غير صحيحة.'
+        user = request.form.get('username', '').strip()
+        pwd = request.form.get('password', '').strip()
+        with sqlite3.connect(DB_NAME) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (user, pwd))
+            if cur.fetchone():
+                session['username'] = user
+                return redirect(url_for('home'))
+            else:
+                error = 'بيانات الدخول خاطئة.'
     return render_template('login.html', error=error)
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'username' not in session:
-        return redirect(url_for('login'))
+    if 'username' not in session: return redirect(url_for('login'))
     try:
         age = float(request.form.get('age', 0))
         glucose = float(request.form.get('glucose', 0))
@@ -91,33 +90,15 @@ def predict():
         bp_avg = (systolic + diastolic) / 2
         
         if model:
-            features = np.array([[age, glucose, bp_avg]])
-            prediction = model.predict(features)
-            
-            if prediction[0] == 1:
-                res = "إيجابي (احتمال إصابة)"
-                # نظام النصائح الذكي للحالات الإيجابية
-                tips = [
-                    "تقليل استهلاك السكريات والنشويات فوراً.",
-                    "مراقبة ضغط الدم بشكل يومي وتسجيل القراءات.",
-                    "المشي لمدة 30 دقيقة يساعد في تحسين النتائج.",
-                    "يُرجى استشارة طبيب مختص للقيام بفحوصات أدق."
-                ]
-                st = "danger"
+            pred = model.predict(np.array([[age, glucose, bp_avg]]))[0]
+            if pred == 1:
+                res, st = "إيجابي (احتمال إصابة)", "danger"
+                tips = ["قلل السكريات", "راقب الضغط", "مارس الرياضة", "استشر طبيباً"]
             else:
-                res = "سلبي (الحالة مستقرة)"
-                # نظام النصائح الوقائي
-                tips = [
-                    "حافظ على نظام غذائي غني بالألياف والخضروات.",
-                    "شرب الماء بكميات كافية (8 أكواب يومياً).",
-                    "الاستمرار في النشاط البدني لتعزيز المناعة.",
-                    "الفحص الدوري كل 6 أشهر إجراء وقائي ممتاز."
-                ]
-                st = "success"
-        else:
-            return "الموديل غير متاح حالياً."
-            
-        return render_template('result.html', result=res, tips=tips, status=st)
+                res, st = "سلبي (الحالة مستقرة)", "success"
+                tips = ["غذاء غني بالألياف", "شرب الماء", "نشاط بدني", "فحص دوري"]
+            return render_template('result.html', result=res, tips=tips, status=st)
+        return "الموديل غير متاح."
     except Exception as e:
         return f"خطأ في البيانات: {e}"
 
