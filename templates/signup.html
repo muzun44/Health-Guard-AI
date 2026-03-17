@@ -11,32 +11,46 @@
             height: 100vh; display: flex; align-items: center; font-family: 'Segoe UI', sans-serif; 
         }
         .signup-card { 
-            max-width: 400px; margin: auto; background: white; padding: 40px; 
+            max-width: 420px; margin: auto; background: white; padding: 40px; 
             border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
         }
         .btn-success { 
             background-color: #27ae60; border: none; padding: 12px; 
             border-radius: 12px; font-weight: bold; width: 100%;
         }
-        .btn-success:hover { background-color: #219150; transform: scale(1.02); }
-        .form-control { border-radius: 10px; padding: 12px; background-color: #f8f9fa; }
+        .btn-success:hover { background-color: #219150; transform: scale(1.02); transition: 0.3s; }
+        .form-control { border-radius: 10px; padding: 12px; background-color: #f8f9fa; border: 1px solid #ddd; }
+        .password-hint { 
+            font-size: 0.8rem; color: #6c757d; margin-top: 8px; text-align: right;
+            padding: 10px; background: #fff8e1; border-radius: 8px; border-right: 4px solid #ffc107;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="signup-card text-center">
             <h2 class="mb-4" style="color: #2c3e50; font-weight: bold;">انضم إلينا ✨</h2>
-            <p class="text-muted mb-4">أنشئ حسابك الطبي لتبدأ رحلة الفحص الذكي</p>
+            <p class="text-muted mb-4">أنشئ حسابك الطبي الآمن للبدء</p>
             
             <form action="/signup" method="POST" class="text-end">
                 <div class="mb-3">
                     <label class="form-label text-muted">اسم المستخدم</label>
                     <input type="text" name="username" class="form-control" placeholder="اختر اسماً مميزاً" required>
                 </div>
+                
                 <div class="mb-4">
                     <label class="form-label text-muted">كلمة المرور</label>
                     <input type="password" name="password" class="form-control" placeholder="******" required>
+                    <div class="password-hint">
+                        <strong>شروط كلمة المرور الآمنة:</strong>
+                        <ul class="mb-0 mt-1" style="list-style-type: '✔️ '; padding-right: 15px;">
+                            <li>8 خانات على الأقل.</li>
+                            <li>يجب أن تحتوي على رقم (123).</li>
+                            <li>يجب أن تحتوي على رمز خاص (@#$).</li>
+                        </ul>
+                    </div>
                 </div>
+
                 <button type="submit" class="btn btn-success text-white">تسجيل الحساب</button>
             </form>
             
