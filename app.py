@@ -6,101 +6,93 @@ import re
 import os
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24) # مفتاح أمان متغير
+app.secret_key = 'health_guard_mega_system_2026'
 
-# تحميل الموديل بذكاء لتجنب الانهيار
+# --- إعدادات الموديل والقاعدة ---
 model = None
 if os.path.exists('medical_model.pkl'):
     try:
         with open('medical_model.pkl', 'rb') as f:
             model = pickle.load(f)
-    except Exception as e:
-        print(f"Error loading model: {e}")
+    except: model = None
 
-DB_NAME = 'health_database_v4.db'
+DB_NAME = 'full_health_system.db'
 
 def init_db():
     with sqlite3.connect(DB_NAME) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
-            )
-        ''')
-        conn.commit()
-
+        conn.execute('''CREATE TABLE IF NOT EXISTS users 
+            (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)''')
 init_db()
 
+# --- المسارات الأساسية (التسجيل والدخول) ---
 @app.route('/')
 def home():
-    if 'username' in session:
-        return render_template('index.html', user=session['username'])
+    if 'username' in session: return render_template('index.html', user=session['username'])
     return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        user = request.form.get('username', '').strip()
-        pwd = request.form.get('password', '').strip()
-        
-        # شروط الدكتور
-        if len(pwd) < 8:
-            return "خطأ: كلمة المرور قصيرة جداً (أقل من 8)."
-        if not re.search(r"\d", pwd):
-            return "خطأ: يجب وجود رقم واحد على الأقل."
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>+-]", pwd):
-            return "خطأ: يجب وجود رمز خاص واحد على الأقل."
-            
+        user, pwd = request.form.get('username', '').strip(), request.form.get('password', '').strip()
+        # شروط الدكتور (8 خانات، رقم، رمز)
+        if len(pwd) < 8 or not re.search(r"\d", pwd) or not re.search(r"[!@#$%^&*]", pwd):
+            return "خطأ: تأكد من شروط كلمة المرور (8 خانات، رقم، رمز خاص)."
         try:
             with sqlite3.connect(DB_NAME) as conn:
-                cur = conn.cursor()
-                cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, pwd))
-                conn.commit()
+                conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, pwd))
             return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            return "هذا الاسم موجود، اختر اسماً آخر."
+        except: return "الاسم موجود مسبقاً."
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
     if request.method == 'POST':
-        user = request.form.get('username', '').strip()
-        pwd = request.form.get('password', '').strip()
+        user, pwd = request.form.get('username', '').strip(), request.form.get('password', '').strip()
         with sqlite3.connect(DB_NAME) as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (user, pwd))
-            if cur.fetchone():
+            if conn.execute("SELECT * FROM users WHERE username=? AND password=?", (user, pwd)).fetchone():
                 session['username'] = user
                 return redirect(url_for('home'))
-            else:
-                error = 'بيانات الدخول خاطئة.'
-    return render_template('login.html', error=error)
+        return "بيانات خاطئة."
+    return render_template('login.html')
 
+# --- المسارات الجديدة (الأقسام التي طلبتِها) ---
+
+@app.route('/check') # صفحة فحص السكر والضغط بالذكاء الاصطناعي
+def check():
+    return render_template('check.html')
+
+@app.route('/chronic') # قسم الأمراض المزمنة
+def chronic():
+    return render_template('chronic.html')
+
+@app.route('/bmi') # قسم الوزن والكتلة
+def bmi():
+    return render_template('bmi.html')
+
+@app.route('/meds') # قسم الصيدلية والأدوية
+def meds():
+    return render_template('meds.html')
+
+@app.route('/skincare') # قسم البشرة
+def skincare():
+    return render_template('skincare.html')
+
+# --- منطق التنبؤ بالذكاء الاصطناعي ---
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'username' not in session: return redirect(url_for('login'))
     try:
         age = float(request.form.get('age', 0))
         glucose = float(request.form.get('glucose', 0))
         systolic = float(request.form.get('systolic', 0))
         diastolic = float(request.form.get('diastolic', 0))
         bp_avg = (systolic + diastolic) / 2
-        
         if model:
             pred = model.predict(np.array([[age, glucose, bp_avg]]))[0]
-            if pred == 1:
-                res, st = "إيجابي (احتمال إصابة)", "danger"
-                tips = ["قلل السكريات", "راقب الضغط", "مارس الرياضة", "استشر طبيباً"]
-            else:
-                res, st = "سلبي (الحالة مستقرة)", "success"
-                tips = ["غذاء غني بالألياف", "شرب الماء", "نشاط بدني", "فحص دوري"]
+            res, st = ("إيجابي", "danger") if pred == 1 else ("سلبي", "success")
+            tips = ["نصيحة 1", "نصيحة 2"] # يمكن تخصيصها لاحقاً
             return render_template('result.html', result=res, tips=tips, status=st)
         return "الموديل غير متاح."
-    except Exception as e:
-        return f"خطأ في البيانات: {e}"
+    except: return "خطأ في البيانات."
 
 @app.route('/logout')
 def logout():
