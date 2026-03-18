@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حساب الوزن المثالي - Health Guard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f0f4f8; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; min-height: 100vh; }
+        .bmi-card { max-width: 500px; margin: auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .result-box { display: none; margin-top: 20px; padding: 20px; border-radius: 15px; text-align: center; font-weight: bold; }
+        .btn-calc { background-color: #27ae60; color: white; border-radius: 12px; padding: 12px; width: 100%; border: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="bmi-card">
+            <h2 class="text-center mb-4" style="color: #2c3e50;">📏 حاسبة الوزن المثالي</h2>
+            <div class="mb-3 text-end">
+                <label class="form-label">الطول (سم)</label>
+                <input type="number" id="height" class="form-control" placeholder="مثال: 170">
+            </div>
+            <div class="mb-4 text-end">
+                <label class="form-label">الوزن (كجم)</label>
+                <input type="number" id="weight" class="form-control" placeholder="مثال: 70">
+            </div>
+            <button onclick="calculateBMI()" class="btn-calc">احسب الآن</button>
+
+            <div id="bmiResult" class="result-box">
+                <h4 id="bmiValue"></h4>
+                <p id="bmiStatus" class="mb-0"></p>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/" class="text-muted text-decoration-none small">العودة للرئيسية</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateBMI() {
+            let h = document.getElementById('height').value / 100;
+            let w = document.getElementById('weight').value;
+            if(h > 0 && w > 0) {
+                let bmi = (w / (h * h)).toFixed(1);
+                let resBox = document.getElementById('bmiResult');
+                let valText = document.getElementById('bmiValue');
+                let statusText = document.getElementById('bmiStatus');
+                
+                resBox.style.display = 'block';
+                valText.innerHTML = "مؤشر كتلة جسمك: " + bmi;
+                
+                if(bmi < 18.5) { statusText.innerHTML = "نحافة 🦴"; resBox.style.backgroundColor = "#e1f5fe"; }
+                else if(bmi < 25) { statusText.innerHTML = "وزن مثالي ✅"; resBox.style.backgroundColor = "#e8f5e9"; }
+                else if(bmi < 30) { statusText.innerHTML = "وزن زائد ⚠️"; resBox.style.backgroundColor = "#fff3e0"; }
+                else { statusText.innerHTML = "سمنة 🚨"; resBox.style.backgroundColor = "#ffe6e6"; }
+            }
+        }
+    </script>
+</body>
+</html>
