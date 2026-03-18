@@ -1,4 +1,4 @@
 flask
-pickle-mixin
+numpy
 scikit-learn
 gunicorn
