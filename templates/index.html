@@ -5,92 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الرئيسية - Health Guard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .hero-section { 
-            background: linear-gradient(135deg, #2c3e50, #34495e); 
-            color: white; padding: 60px 0; border-radius: 0 0 40px 40px; 
-            margin-bottom: 40px; position: relative;
-        }
-        .service-card { 
-            background: white; border-radius: 25px; padding: 30px; text-align: center; 
-            transition: 0.4s; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            height: 100%; cursor: pointer; text-decoration: none; display: block;
-        }
-        .service-card:hover { transform: translateY(-12px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .icon-box { 
-            font-size: 45px; margin-bottom: 20px; display: inline-block;
-            width: 80px; height: 80px; line-height: 80px; border-radius: 20px;
-        }
-        .bg-check { background: #e8f5e9; color: #27ae60; }
-        .bg-bmi { background: #e3f2fd; color: #3498db; }
-        .bg-meds { background: #f3e5f5; color: #8e44ad; }
-        .bg-skin { background: #fff1f2; color: #ff8fa3; }
-        .bg-chronic { background: #fff8e1; color: #f39c12; }
-        
-        .logout-btn { position: absolute; left: 20px; top: 20px; }
+        .hero-section { background-color: #ffffff; padding: 40px; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .service-card { background: white; border: none; border-radius: 20px; transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 25px; }
+        .service-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .icon-box { font-size: 2.5rem; margin-bottom: 15px; color: #0984e3; }
     </style>
 </head>
 <body>
 
-<div class="hero-section text-center">
-    <a href="/logout" class="btn btn-outline-light btn-sm logout-btn">تسجيل الخروج</a>
-    <div class="container">
-        <h1 class="fw-bold">مرحباً بك في Health Guard ✨</h1>
-        <p class="lead">منصتك الذكية لإدارة صحتك بذكاء وعناية</p>
+    <div class="hero-section text-center">
+        <h1 class="fw-bold">مرحباً بك، {{ name }} ✨</h1>
+        <p class="text-muted">كيف يمكننا مساعدتك في الاهتمام بصحتك اليوم؟</p>
+        <a href="/logout" class="btn btn-outline-danger btn-sm mt-2">تسجيل الخروج</a>
     </div>
-</div>
 
-<div class="container mb-5">
-    <div class="row g-4 justify-content-center">
-        
-        <div class="col-md-6 col-lg-4">
-            <a href="/check" class="service-card">
-                <div class="icon-box bg-check"><i class="bi bi-robot"></i></div>
-                <h5 class="fw-bold" style="color: #2c3e50;">فحص الذكاء الاصطناعي</h5>
-                <p class="text-muted small">تحليل ذكي لمستويات السكر وضغط الدم مع توصيات فورية.</p>
-            </a>
+    <div class="container mb-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <a href="/book" class="service-card text-center">
+                    <div class="icon-box text-warning"><i class="bi bi-calendar-plus"></i></div>
+                    <h4>حجز موعد</h4>
+                    <p class="text-muted small">احجز موعدك في أقرب مستشفى بسهولة</p>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="/check" class="service-card text-center">
+                    <div class="icon-box text-success"><i class="bi bi-heart-pulse"></i></div>
+                    <h4>فحص ذكي</h4>
+                    <p class="text-muted small">تحليل لمستوى السكر والضغط بالذكاء الاصطناعي</p>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="/bmi" class="service-card text-center">
+                    <div class="icon-box text-info"><i class="bi bi-speedometer2"></i></div>
+                    <h4>الوزن المثالي</h4>
+                    <p class="text-muted small">احسب كتلة جسمك وتعرف على وزنك الصحي</p>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="/chronic" class="service-card text-center">
+                    <div class="icon-box text-primary"><i class="bi bi-shield-check"></i></div>
+                    <h4>الأمراض المزمنة</h4>
+                    <p class="text-muted small">نصائح وإرشادات للتعامل مع الأمراض</p>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="/skincare" class="service-card text-center">
+                    <div class="icon-box text-danger"><i class="bi bi-magic"></i></div>
+                    <h4>العناية بالبشرة</h4>
+                    <p class="text-muted small">روتين يومي للحفاظ على نضارة بشرتك</p>
+                </a>
+            </div>
+            
+            <div class="col-md-4">
+                <a href="/meds" class="service-card text-center">
+                    <div class="icon-box text-secondary"><i class="bi bi-capsule"></i></div>
+                    <h4>الصيدلية</h4>
+                    <p class="text-muted small">دليل الأدوية والاستخدامات الصحيحة</p>
+                </a>
+            </div>
         </div>
-
-        <div class="col-md-6 col-lg-4">
-            <a href="/bmi" class="service-card">
-                <div class="icon-box bg-bmi"><i class="bi bi-speedometer2"></i></div>
-                <h5 class="fw-bold" style="color: #2c3e50;">حساب الوزن المثالي</h5>
-                <p class="text-muted small">احسب مؤشر كتلة جسمك (BMI) واعرف حالتك الصحية بدقة.</p>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <a href="/chronic" class="service-card">
-                <div class="icon-box bg-chronic"><i class="bi bi-heart-pulse"></i></div>
-                <h5 class="fw-bold" style="color: #2c3e50;">دليل الأمراض المزمنة</h5>
-                <p class="text-muted small">معلومات شاملة وتوعوية عن السكري، الضغط، والربو.</p>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <a href="/meds" class="service-card">
-                <div class="icon-box bg-meds"><i class="bi bi-capsule-pill"></i></div>
-                <h5 class="fw-bold" style="color: #2c3e50;">تنظيم الأدوية</h5>
-                <p class="text-muted small">جدول مخصص لمواعيد الأدوية لضمان الالتزام بالعلاج.</p>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <a href="/skincare" class="service-card">
-                <div class="icon-box bg-skin"><i class="bi bi-magic"></i></div>
-                <h5 class="fw-bold" style="color: #2c3e50;">ركن العناية بالبشرة</h5>
-                <p class="text-muted small">نصائح جمالية وصحية مخصصة حسب نوع بشرتك.</p>
-            </a>
-        </div>
-
     </div>
-</div>
-
-<footer class="text-center text-muted py-4">
-    <small>© 2026 جميع الحقوق محفوظة لمشروع Health Guard</small>
-</footer>
 
 </body>
 </html>
